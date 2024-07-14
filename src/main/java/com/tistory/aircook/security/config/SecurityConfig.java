@@ -38,34 +38,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-//        http.csrf(customizer ->
-//                customizer.disable());
+        http.csrf(customizer ->
+                customizer.disable());
 
-//        http.cors(customizer ->
-//                customizer.configurationSource(new CorsConfigurationSource() {
-//                    @Override
-//                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-//                        CorsConfiguration config = new CorsConfiguration();
-//                        config.setAllowedOriginPatterns(Collections.singletonList("*"));
-//                        //config.setAllowedOrigins(Collections.singletonList("*"));
-//                        config.setAllowedMethods(Collections.singletonList("*"));
-//                        config.setAllowedHeaders(Collections.singletonList("*"));
-//                        config.setAllowCredentials(true);
-//                        config.setMaxAge(3600L);
-//                        return config;
-//                    }
-//                })
-//        );
+        http.cors(customizer ->
+                customizer.configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOriginPatterns(Collections.singletonList("*"));
+                        //config.setAllowedOrigins(Collections.singletonList("*"));
+                        config.setAllowedMethods(Collections.singletonList("*"));
+                        config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setAllowCredentials(true);
+                        config.setMaxAge(3600L);
+                        return config;
+                    }
+                })
+        );
 
         //formLogin 비활성화
         //http.formLogin(customizer -> customizer.disable());
         //SecurityFilterChain을 정의하면 Spring Security의 기본 보안 구성이 재정의됩니다.
         // 기본 보안 구성에는 기본 로그인 페이지에 대한 설정이 포함되어 있으므로,
         // 사용자가 SecurityFilterChain을 정의하면서 기본 보안 구성을 제공하지 않으면 기본 로그인 페이지도 더 이상 제공되지 않습니다.
-        http.formLogin(withDefaults());
+        //http.formLogin(withDefaults());
+        http.formLogin(customizer -> customizer
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .defaultSuccessUrl("/login/success", true));
 
         //httpBasic 비활성화
-        //http.httpBasic(customizer -> customizer.disable());
+        http.httpBasic(customizer -> customizer.disable());
 
 
         //deprecatec된 authorizeRequests()에서 동작하던 AuthenticationProvider가 동작하지 않는다.
