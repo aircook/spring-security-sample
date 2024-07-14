@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: spring-security-sample
+  datasource:
+    url: jdbc:sqlite:mydb.sqlite #mydb.sqlite is the name of the SQLite file. If you don?t have the file (at the project?s root), it will be automatically created.
+    username: admin
+    password: admin
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 30
+  sql:
+    init:
+      mode: always
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    open-in-view: false
