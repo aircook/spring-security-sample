@@ -32,7 +32,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Slf4j
 public class SecurityConfig {
 
-//    private final SecurityProperties securityProperties;
+    private final SecurityProperties securityProperties;
 
     //빈 선언만 해도 기본 http://localhost:8080/login 페이지가 404가 나온다.
     @Bean
@@ -69,11 +69,11 @@ public class SecurityConfig {
 
 
         //deprecatec된 authorizeRequests()에서 동작하던 AuthenticationProvider가 동작하지 않는다.
-//        http.authorizeHttpRequests(customizer ->
-//                customizer
-//                        //.requestMatchers(securityProperties.getExclude().toArray(new String[0])).permitAll()
-//                        .anyRequest().authenticated()
-//        );
+        http.authorizeHttpRequests(customizer ->
+                customizer
+                        .requestMatchers(securityProperties.getExclude().toArray(new String[0])).permitAll()
+                        .anyRequest().authenticated()
+        );
 
         //BasicAuthenticationFilter 전에 WebSecurityFilter 추가
         //filter ignoring 설절을 위해 bean으로 연결하지 않음. new SessionTokenFilter()!!
