@@ -28,3 +28,4 @@ security:
     exclude:
       - "/login"
       - "/public/test01"
+      - "/users/**"

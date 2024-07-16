@@ -107,10 +107,10 @@ public class SecurityConfig {
         return manager;
     }
 
-//    @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        //return NoOpPasswordEncoder.getInstance(); //deprecated
-//        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-//    }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        //return NoOpPasswordEncoder.getInstance(); //deprecated
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
 
 }
