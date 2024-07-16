@@ -1,6 +1,7 @@
 package com.tistory.aircook.security.config;
 
 
+import com.tistory.aircook.security.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,13 +100,14 @@ public class SecurityConfig {
      * 지정하면 Using generated security password 사라진다.
      * 비밀번호의 {noop} 의미는 암호화 없음
      * @return
+     * @see CustomUserDetailsService
      */
-    @Bean
-    public UserDetailsService userDetailsService() {
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("user1").password("{noop}1234").roles("user").build());
-        return manager;
-    }
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+//        manager.createUser(User.withUsername("user1").password("{noop}1234").roles("user").build());
+//        return manager;
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
