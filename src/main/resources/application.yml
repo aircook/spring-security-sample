@@ -26,7 +26,10 @@ logging:
 security:
   authenticated:
     exclude:
+      - "/"
       - "/login"
       - "/login/failure"
       - "/public/test01"
       - "/users/**"
+jwt:
+  secret: Vm4K038c4nspS47dyroqkfwk6balAo4kf9kdba36hT8adfna2fdu032ihawSO05zG
