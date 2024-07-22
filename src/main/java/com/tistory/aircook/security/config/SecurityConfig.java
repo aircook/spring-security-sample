@@ -106,6 +106,9 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
         );
 
+        //JWTFilter 등록
+        http.addFilterBefore(new JWTFilter(jwtUtil), CustomAuthenticationFilter.class);
+
         //filter ignoring 설정을 위해 bean으로 연결하지 않음. new ()!!
         //https://bitgadak.tistory.com/10
         //필터 추가 CustomAuthenticationFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
