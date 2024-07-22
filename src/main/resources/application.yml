@@ -27,5 +27,6 @@ security:
   authenticated:
     exclude:
       - "/login"
+      - "/login/failure"
       - "/public/test01"
       - "/users/**"

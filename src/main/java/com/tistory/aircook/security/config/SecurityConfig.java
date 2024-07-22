@@ -12,6 +12,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -69,7 +70,10 @@ public class SecurityConfig {
         http.formLogin(customizer -> customizer
                 .usernameParameter("username")
                 .passwordParameter("password")
-                .defaultSuccessUrl("/login/success", true));
+                .defaultSuccessUrl("/login/success", true)
+                //POST로 정의되어야 한다.
+                .failureForwardUrl("/login/failure")
+        );
 
         //httpBasic 비활성화
         http.httpBasic(customizer -> customizer.disable());
@@ -87,11 +91,11 @@ public class SecurityConfig {
         //https://bitgadak.tistory.com/10
         //http.addFilterBefore(new SessionTokenFilter(securityProperties.getExclude()), BasicAuthenticationFilter.class);
 
-//        http.sessionManagement(customizer ->
-//                customizer.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-//                        .invalidSessionUrl("/")
-//                        .maximumSessions(1)
-//                        .expiredUrl("/"));
+        http.sessionManagement(customizer ->
+                customizer.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .invalidSessionUrl("/")
+                        .maximumSessions(1)
+                        .expiredUrl("/"));
 
         return http.build();
     }
