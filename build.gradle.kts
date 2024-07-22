@@ -17,7 +17,19 @@ configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
     }
+    all {
+        //exclude logback configurations
+        exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
+    }
 }
+
+//allprojects {
+//    configurations.all {
+//        //exclude logback configurations
+//        exclude(group = "org.springframework.boot", module= "spring-boot-starter-logging")
+//        exclude(group = "ch.qos.logback", module= "logback-classic")
+//    }
+//}
 
 repositories {
     mavenCentral()
@@ -28,6 +40,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+
     implementation("org.hibernate.orm:hibernate-community-dialects")
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
