@@ -1,7 +1,7 @@
 package com.tistory.aircook.security.config;
 
 import com.tistory.aircook.security.entity.UserEntity;
-import com.tistory.aircook.security.model.CustomUserDetails;
+import com.tistory.aircook.security.model.LoginUserDetails;
 import com.tistory.aircook.security.util.JWTUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 @RequiredArgsConstructor
 @Slf4j
-public class JWTFilter extends OncePerRequestFilter {
+public class TokenFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
 
@@ -66,7 +66,7 @@ public class JWTFilter extends OncePerRequestFilter {
         userEntity.setRole(role);
 
         //UserDetails에 회원 정보 객체 담기
-        CustomUserDetails customUserDetails = new CustomUserDetails(userEntity);
+        LoginUserDetails customUserDetails = new LoginUserDetails(userEntity);
 
         //스프링 시큐리티 인증 토큰 생성
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());

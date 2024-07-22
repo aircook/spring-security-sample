@@ -1,6 +1,6 @@
 package com.tistory.aircook.security.config;
 
-import com.tistory.aircook.security.model.CustomUserDetails;
+import com.tistory.aircook.security.model.LoginUserDetails;
 import com.tistory.aircook.security.util.JWTUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,7 +21,7 @@ import java.util.Iterator;
 
 @RequiredArgsConstructor
 @Slf4j
-public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     //JWTUtil 주입
@@ -46,7 +46,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         //UserDetailsS
-        CustomUserDetails customUserDetails = (CustomUserDetails) authResult.getPrincipal();
+        LoginUserDetails customUserDetails = (LoginUserDetails) authResult.getPrincipal();
 
         String username = customUserDetails.getUsername();
 

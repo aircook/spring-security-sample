@@ -1,11 +1,10 @@
 package com.tistory.aircook.security.service;
 
 import com.tistory.aircook.security.entity.UserEntity;
-import com.tistory.aircook.security.model.CustomUserDetails;
+import com.tistory.aircook.security.model.LoginUserDetails;
 import com.tistory.aircook.security.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,7 +14,7 @@ import org.springframework.util.ObjectUtils;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CustomUserDetailsService implements UserDetailsService {
+public class LoginUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
@@ -31,7 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("Could not found user" + username);
         }
 
-        return new CustomUserDetails(user);
+        return new LoginUserDetails(user);
         //다음과 같이 UserDetails 생성할수도 있다.
 //        return User.builder()
 //                .username(user.getUserid())

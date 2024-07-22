@@ -1,7 +1,7 @@
 package com.tistory.aircook.security.config;
 
 
-import com.tistory.aircook.security.service.CustomUserDetailsService;
+import com.tistory.aircook.security.service.LoginUserDetailsService;
 import com.tistory.aircook.security.util.JWTUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -9,25 +9,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Collections;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 /**
  * security의 기본설정 아이디는 user, 비밀번호는 로그에서 보여줌
@@ -46,6 +39,8 @@ public class SecurityConfig {
     private final SecurityProperties securityProperties;
 
     //AuthenticationManager Bean 등록, AuthenticationConfiguration Bean은 Spring이 생성함
+    //UserDetailsService를 구현하면 다음 메시지가 보인다.
+    //Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -107,12 +102,12 @@ public class SecurityConfig {
         );
 
         //JWTFilter 등록
-        http.addFilterBefore(new JWTFilter(jwtUtil), CustomAuthenticationFilter.class);
+        http.addFilterBefore(new TokenFilter(jwtUtil), LoginFilter.class);
 
         //filter ignoring 설정을 위해 bean으로 연결하지 않음. new ()!!
         //https://bitgadak.tistory.com/10
         //필터 추가 CustomAuthenticationFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
-        http.addFilterAt(new CustomAuthenticationFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
 //        http.sessionManagement(customizer ->
 //                customizer.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -132,7 +127,7 @@ public class SecurityConfig {
      * 지정하면 Using generated security password 사라진다.
      * 비밀번호의 {noop} 의미는 암호화 없음
      * @return
-     * @see CustomUserDetailsService
+     * @see LoginUserDetailsService
      */
 //    @Bean
 //    public UserDetailsService userDetailsService() {
