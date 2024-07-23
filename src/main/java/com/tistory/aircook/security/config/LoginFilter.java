@@ -1,5 +1,6 @@
 package com.tistory.aircook.security.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tistory.aircook.security.model.LoginUserDetails;
 import com.tistory.aircook.security.util.JWTUtil;
 import jakarta.servlet.FilterChain;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,9 +17,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import javax.print.attribute.standard.MediaSize;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -69,8 +75,24 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
 
-        log.debug("login fail");
+        log.debug("login fail, message is [{}]", failed.getMessage());
+
         //로그인 실패시 401 응답 코드 반환
-        response.setStatus(401);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8).toString());
+
+        // 응답할 데이터 생성
+        Map<String, Object> data = new HashMap<>();
+        data.put("status", 401);
+        data.put("message", "Authentication failed");
+        data.put("error", failed.getMessage());
+
+        // JSON 변환을 위한 ObjectMapper 사용
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonResponse = objectMapper.writeValueAsString(data);
+
+        // 응답에 JSON 데이터 작성
+        response.getWriter().write(jsonResponse);
+
     }
 }
