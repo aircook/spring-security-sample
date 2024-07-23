@@ -11,7 +11,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-@Service
+
+//둘다 구현하면 다음과 같은 메시지가 나온다.
+//Global AuthenticationManager configured with AuthenticationProvider bean with name customAuthenticationProvider
+//Global AuthenticationManager configured with an AuthenticationProvider bean.
+//UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean.
+//Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+//@Service
 @RequiredArgsConstructor
 @Slf4j
 public class LoginUserDetailsService implements UserDetailsService {

@@ -2,13 +2,17 @@ package com.tistory.aircook.security.config;
 
 
 import com.tistory.aircook.security.service.LoginUserDetailsService;
+import com.tistory.aircook.security.service.UserService;
 import com.tistory.aircook.security.util.JWTUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,7 +20,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -38,23 +46,35 @@ public class SecurityConfig {
 
     private final SecurityProperties securityProperties;
 
+    private final UserService userService;
+
+    private final CustomAuthenticationProvider customAuthenticationProvider;
+
     //AuthenticationManager Bean 등록, AuthenticationConfiguration Bean은 Spring이 생성함
     //UserDetailsService를 구현하면 다음 메시지가 보인다.
     //Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+    //@Bean
+    //public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+    //    return configuration.getAuthenticationManager();
+    //}
+
+
+    //인증관리자(Manager) 빈, 아래 fiterChain 메소드에 전달됨, 인증공급자(Provider)가 정의되어 있음
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider);
+//        authenticationManagerBuilder.inMemoryAuthentication()
+//                .withUser("memuser")
+//                .password(passwordEncoder().encode("pass"))
+//                .roles("USER");
+        return authenticationManagerBuilder.build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        //return NoOpPasswordEncoder.getInstance(); //deprecated
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
 
     //빈 선언만 해도 기본 http://localhost:8080/login 페이지가 404가 나온다.
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
 
         //csrf 비활성화
         http.csrf(customizer -> customizer.disable());
@@ -93,7 +113,6 @@ public class SecurityConfig {
         //httpBasic 비활성화
         http.httpBasic(customizer -> customizer.disable());
 
-
         //deprecatec된 authorizeRequests()에서 동작하던 AuthenticationProvider가 동작하지 않는다.
         http.authorizeHttpRequests(customizer ->
                 customizer
@@ -107,7 +126,9 @@ public class SecurityConfig {
         //filter ignoring 설정을 위해 bean으로 연결하지 않음. new ()!!
         //https://bitgadak.tistory.com/10
         //필터 추가 CustomAuthenticationFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
-        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        //UsernamePasswordAuthenticationFilter재구현하고 UserDetailsService 사용할때 테스트 완료했었음
+        //아래와 authenticationManager이 다르다. UserDetailsService 조차도 재구현했음으로 사용안함
+        //http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
 //        http.sessionManagement(customizer ->
 //                customizer.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -115,12 +136,16 @@ public class SecurityConfig {
 //                        .maximumSessions(1)
 //                        .expiredUrl("/"));
 
+        //이건 설정하나 안하나 뭔 변화가 있지?
+        //http.authenticationManager(authenticationManager);
+        //CsrfFilter 다음에 필터 등록, 인증관리자 전달, 인증관리자는 인증공급자(CustomAuthenticationProvider와 연결됨)
+        http.addFilterAfter(new CustomAuthenticationFilter(authenticationManager, jwtUtil), CsrfFilter.class);
+
         //JWT 인증을 위한 세션 설정
         http.sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
-
 
     /**
      * 기본로그인페이지에서 사용할 사용자 계정정보를 인메모리에 지정

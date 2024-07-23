@@ -35,5 +35,6 @@ security:
       - "/login/failure"
       - "/public/test01"
       - "/users/**"
+      - "/api/v1/login"
 jwt:
   secret: Vm4K038c4nspS47dyroqkfwk6balAo4kf9kdba36hT8adfna2fdu032ihawSO05zG

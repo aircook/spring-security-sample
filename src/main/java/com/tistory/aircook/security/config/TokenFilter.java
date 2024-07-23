@@ -19,6 +19,7 @@ import java.io.IOException;
 /**
  * 핕터의 목적은 Header에 존재하는 토큰정보를 분석하여
  * 토큰정보가 유효하면 UsernamePasswordAuthenticationToken 생성하여 인증부분을 통과될수 있게 하는것이다.
+ * UserDetailsService 구현체 사용안하면서 필터 등록 안함
  */
 @RequiredArgsConstructor
 @Slf4j
