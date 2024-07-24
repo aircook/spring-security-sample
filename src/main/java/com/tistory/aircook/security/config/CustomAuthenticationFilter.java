@@ -1,14 +1,11 @@
 
 package com.tistory.aircook.security.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tistory.aircook.security.util.JWTUtil;
-import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -16,9 +13,6 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
 
 //https://gregor77.github.io/2021/05/18/spring-security-03/
@@ -39,6 +33,8 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
     //시큐리티 설정에 필터 추가됨 http.addFilterAfter(new CustomAuthenticationFilter(authenticationManager, jwtUtil), CsrfFilter.class);
     public CustomAuthenticationFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
+        this.setAuthenticationSuccessHandler(new CustomAuthenticationSuccessHandler());
+        this.setAuthenticationFailureHandler(new CustomAuthenticationFailureHandler());
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
     }
@@ -67,67 +63,5 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
         return getAuthenticationManager().authenticate(new CustomAuthenticationToken(email, credentials));
     }
 
-    /**
-     * 인증성공처리
-     * @param request
-     * @param response
-     * @param chain
-     * @param authResult the object returned from the <tt>attemptAuthentication</tt> method.
-     * @throws IOException
-     * @throws ServletException
-     */
-    @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        log.debug("login successful");
-
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8).toString());
-
-        // 응답할 데이터 생성
-        Map<String, Object> data = new HashMap<>();
-        data.put("status", 200);
-        data.put("message", "Authentication success");
-        data.put("result", authResult);
-
-        // JSON 변환을 위한 ObjectMapper 사용
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonResponse = objectMapper.writeValueAsString(data);
-
-        // 응답에 JSON 데이터 작성
-        response.getWriter().write(jsonResponse);
-
-    }
-
-    /**
-     * 인증실패처리
-     * @param request
-     * @param response
-     * @param failed
-     * @throws IOException
-     * @throws ServletException
-     */
-    @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-
-        log.debug("login fail, message is [{}]", failed.getMessage());
-
-        //로그인 실패시 401 응답 코드 반환
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8).toString());
-
-        // 응답할 데이터 생성
-        Map<String, Object> data = new HashMap<>();
-        data.put("status", 401);
-        data.put("message", "Authentication failed");
-        data.put("result", failed.getMessage());
-
-        // JSON 변환을 위한 ObjectMapper 사용
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonResponse = objectMapper.writeValueAsString(data);
-
-        // 응답에 JSON 데이터 작성
-        response.getWriter().write(jsonResponse);
-
-    }
 }
 

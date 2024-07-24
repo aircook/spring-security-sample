@@ -23,6 +23,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.*;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -49,6 +50,8 @@ public class SecurityConfig {
     private final UserService userService;
 
     private final CustomAuthenticationProvider customAuthenticationProvider;
+
+    private final CustomAuthorizationManager customAuthorizationManager;
 
     //AuthenticationManager Bean 등록, AuthenticationConfiguration Bean은 Spring이 생성함
     //UserDetailsService를 구현하면 다음 메시지가 보인다.
@@ -117,11 +120,12 @@ public class SecurityConfig {
         http.authorizeHttpRequests(customizer ->
                 customizer
                         .requestMatchers(securityProperties.getExclude().toArray(new String[0])).permitAll()
+                        .requestMatchers("/access/**").access(customAuthorizationManager)
                         .anyRequest().authenticated()
         );
 
         //JWTFilter 등록
-        http.addFilterBefore(new TokenFilter(jwtUtil), LoginFilter.class);
+        //http.addFilterBefore(new TokenFilter(jwtUtil), LoginFilter.class);
 
         //filter ignoring 설정을 위해 bean으로 연결하지 않음. new ()!!
         //https://bitgadak.tistory.com/10
@@ -130,23 +134,40 @@ public class SecurityConfig {
         //아래와 authenticationManager이 다르다. UserDetailsService 조차도 재구현했음으로 사용안함
         //http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
+        //이건 설정하나 안하나 뭔 변화가 있지?
+        //http.authenticationManager(authenticationManager);
+        //CsrfFilter 다음에 필터 등록, 인증관리자 전달, 인증관리자는 인증공급자(CustomAuthenticationProvider와 연결됨)
+
+//        http.addFilter(new SecurityContextPersistenceFilter());
+
+        http.addFilterAfter(new CustomAuthenticationFilter(authenticationManager, jwtUtil), SecurityContextHolderFilter.class);
+
+        //JWT 인증을 위한 세션 설정
+        //http.sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        //세션 사용 설정
 //        http.sessionManagement(customizer ->
 //                customizer.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
 //                        .invalidSessionUrl("/")
 //                        .maximumSessions(1)
 //                        .expiredUrl("/"));
 
-        //이건 설정하나 안하나 뭔 변화가 있지?
-        //http.authenticationManager(authenticationManager);
-        //CsrfFilter 다음에 필터 등록, 인증관리자 전달, 인증관리자는 인증공급자(CustomAuthenticationProvider와 연결됨)
-        http.addFilterAfter(new CustomAuthenticationFilter(authenticationManager, jwtUtil), CsrfFilter.class);
+        http.sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
 
-        //JWT 인증을 위한 세션 설정
-        http.sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.securityContext(securityContext -> securityContext
+                .securityContextRepository(securityContextRepository())
+                .requireExplicitSave(true)
+        );
 
         return http.build();
     }
-
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new DelegatingSecurityContextRepository(
+                new RequestAttributeSecurityContextRepository(),
+                new HttpSessionSecurityContextRepository()
+        );
+    }
     /**
      * 기본로그인페이지에서 사용할 사용자 계정정보를 인메모리에 지정
      * 지정하면 Using generated security password 사라진다.

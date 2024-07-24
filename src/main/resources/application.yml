@@ -23,8 +23,10 @@ logging:
     root: info
     org.mybatis: debug
     org.xerial: debug
-    com.zaxxer.hikari: debug
+#    com.zaxxer.hikari: debug
+    org.springframework.security: debug
     com.tistory.aircook.security: debug
+
 
 #security settings ------------------------------------------------------------------------------------
 security:

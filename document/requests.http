@@ -20,6 +20,13 @@ GET http://localhost:8080/public/test01
 GET http://localhost:8080/private/test01
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIwMSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTcyMTY5NTkxNCwiZXhwIjoxNzIxNjk1OTUwfQ.6gnFAq7xkEDpwWbvx7wNnjZCfN_7Im3toedU_SVjcHk
 
+### Private test02, you need token to pass
+GET http://localhost:8080/private/test02
+
+### Access test, custom authorization manager
+GET http://localhost:8080/access/
+
+
 ### Basic Authentication
 GET http://localhost:8080/private/test01
 Accept: application/json
