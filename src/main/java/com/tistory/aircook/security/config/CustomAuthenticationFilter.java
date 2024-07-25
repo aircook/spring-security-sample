@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
@@ -31,10 +32,13 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
 
     //생성자, 인증관리자(관리자는 인증공급자랑 연결), JWT Token발행을 위해 클래스 가져옴
     //시큐리티 설정에 필터 추가됨 http.addFilterAfter(new CustomAuthenticationFilter(authenticationManager, jwtUtil), CsrfFilter.class);
-    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil) {
+    public CustomAuthenticationFilter(AuthenticationManager authenticationManager,
+                                      JWTUtil jwtUtil,
+                                      DelegatingSecurityContextRepository delegatingSecurityContextRepository) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
         this.setAuthenticationSuccessHandler(new CustomAuthenticationSuccessHandler());
         this.setAuthenticationFailureHandler(new CustomAuthenticationFailureHandler());
+        this.setSecurityContextRepository(delegatingSecurityContextRepository);
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
     }

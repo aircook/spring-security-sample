@@ -105,13 +105,14 @@ public class SecurityConfig {
         // 기본 보안 구성에는 기본 로그인 페이지에 대한 설정이 포함되어 있으므로,
         // 사용자가 SecurityFilterChain을 정의하면서 기본 보안 구성을 제공하지 않으면 기본 로그인 페이지도 더 이상 제공되지 않습니다.
         //http.formLogin(withDefaults());
-//        http.formLogin(customizer -> customizer
-//                .usernameParameter("username")
-//                .passwordParameter("password")
-//                .defaultSuccessUrl("/login/success", true)
-//                //POST로 정의되어야 한다.
-//                .failureForwardUrl("/login/failure")
-//        );
+        http.formLogin(customizer -> customizer
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .loginProcessingUrl("/api/v1/login")
+                .defaultSuccessUrl("/login/success", true)
+                //POST로 정의되어야 한다.
+                .failureForwardUrl("/login/failure")
+        );
 
         //httpBasic 비활성화
         http.httpBasic(customizer -> customizer.disable());
@@ -140,7 +141,7 @@ public class SecurityConfig {
 
 //        http.addFilter(new SecurityContextPersistenceFilter());
 
-        http.addFilterAfter(new CustomAuthenticationFilter(authenticationManager, jwtUtil), SecurityContextHolderFilter.class);
+        http.addFilterAfter(new CustomAuthenticationFilter(authenticationManager, jwtUtil, delegatingSecurityContextRepository()), SecurityContextHolderFilter.class);
 
         //JWT 인증을 위한 세션 설정
         //http.sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -154,20 +155,14 @@ public class SecurityConfig {
 
         http.sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
 
-        http.securityContext(securityContext -> securityContext
-                .securityContextRepository(securityContextRepository())
-                .requireExplicitSave(true)
-        );
+        http.securityContext((securityContext) -> {
+            securityContext.securityContextRepository(delegatingSecurityContextRepository());
+            securityContext.requireExplicitSave(true);
+        });
 
         return http.build();
     }
-    @Bean
-    public SecurityContextRepository securityContextRepository() {
-        return new DelegatingSecurityContextRepository(
-                new RequestAttributeSecurityContextRepository(),
-                new HttpSessionSecurityContextRepository()
-        );
-    }
+
     /**
      * 기본로그인페이지에서 사용할 사용자 계정정보를 인메모리에 지정
      * 지정하면 Using generated security password 사라진다.
@@ -181,5 +176,13 @@ public class SecurityConfig {
 //        manager.createUser(User.withUsername("user1").password("{noop}1234").roles("user").build());
 //        return manager;
 //    }
+
+    @Bean
+    public DelegatingSecurityContextRepository delegatingSecurityContextRepository() {
+        return new DelegatingSecurityContextRepository(
+                new RequestAttributeSecurityContextRepository(),
+                new HttpSessionSecurityContextRepository()
+        );
+    }
 
 }

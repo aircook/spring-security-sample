@@ -17,14 +17,10 @@ import java.util.Enumeration;
 public class PublicController {
 
     @GetMapping("/test01")
-    public String test01(@AuthenticationPrincipal UserDetails userDetails, HttpSession httpSession) {
+    public String test01(@AuthenticationPrincipal Object object, HttpSession httpSession) {
 
-        if (userDetails != null) {
-            log.debug("Username is [{}]", userDetails.getUsername());
-            log.debug("Password is [{}]", userDetails.getPassword());
-            log.debug("Authorities is [{}]", userDetails.getAuthorities());
-        }
-        httpSession.setAttribute("key", "value");
+        log.debug("object is [{}]", object);
+        //httpSession.setAttribute("key", "value");
 
         log.debug(getAllSessionInfo(httpSession));
 
