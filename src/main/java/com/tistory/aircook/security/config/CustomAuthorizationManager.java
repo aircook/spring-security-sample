@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.PathContainer;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.stereotype.Component;
@@ -13,21 +14,32 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.util.pattern.PathPatternParser;
-
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/**
+ * 인가 관리자
+ * 인가여부를 관리한다. 다음 {@link AuthorizeHttpRequestsConfigurer.AuthorizedUrl#access(AuthorizationManager) 메소드}의 인자로 적용
+ *
+ * @see AuthorizeHttpRequestsConfigurer.AuthorizedUrl#access(AuthorizationManager)
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class CustomAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
 
+    // 선언되어 있는 전체 request mapping 정보를 가져오기 위해
     private final RequestMappingHandlerMapping requestMappingHandlerMapping;
-    private final PathPatternParser pathPatternParser = new PathPatternParser();
 
+    /**
+     * {@link AuthorizationManager} 인터페이스 메소드 override
+     *
+     * @param authentication              the {@link Supplier} of the {@link Authentication} to check
+     * @param requestAuthorizationContext the {@link T} object to check
+     * @return 인증결과
+     */
     @Override
     public AuthorizationDecision check(Supplier<Authentication> authentication, RequestAuthorizationContext requestAuthorizationContext) {
 
@@ -40,10 +52,6 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
         log.debug("request uri is [{}]", requestAuthorizationContext.getRequest().getRequestURI());
          */
 
-        return new AuthorizationDecision(isAccessAllowed(authentication.get(), requestAuthorizationContext));
-    }
-
-    private boolean isAccessAllowed(Authentication authentication, RequestAuthorizationContext requestAuthorizationContext) {
         // 여기에 실제 권한 확인 로직을 구현합니다
         // 예: 데이터베이스 조회, 외부 서비스 호출 등
         String requestUrl = requestAuthorizationContext.getRequest().getRequestURI();
@@ -55,22 +63,24 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
         List<String> userPermissions = List.of("access:test01:read", "access:test01:create");
 
         // 요청된 엔드포인트의 필요 권한 확인
-        String requiredPermission = getRequiredPermissionForEndpoint(requestUrl, httpMethod);
-        return userPermissions.contains(requiredPermission);
+        String requiredPermission = getRequiredPermission(requestUrl, httpMethod);
+        boolean isAccessAllowed = userPermissions.contains(requiredPermission);
 
-        //테스트를 위해 test01만 true
-        //return requestUrl.equals("/access/test01");
+        return new AuthorizationDecision(isAccessAllowed);
     }
 
-
-    private String getRequiredPermissionForEndpoint(String requestUrl, String httpMethod) {
+    /**
+     * @param requestUrl 요청 Http URL
+     * @param httpMethod 요청 Http Method
+     * @return 매칭된 {@link RequiresPermission}의 값
+     */
+    private String getRequiredPermission(String requestUrl, String httpMethod) {
         // 모든 핸들러 메소드를 순회하며 매칭되는 엔드포인트 찾기
         for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : requestMappingHandlerMapping.getHandlerMethods().entrySet()) {
             RequestMappingInfo mapping = entry.getKey();
             HandlerMethod method = entry.getValue();
             // URL 패턴 매칭
-            boolean urlMatches = mapping.getPathPatternsCondition() != null && mapping.getPathPatternsCondition().getPatterns().stream()
-                    .anyMatch(pattern -> pattern.matches(PathContainer.parsePath(requestUrl)));
+            boolean urlMatches = mapping.getPathPatternsCondition() != null && mapping.getPathPatternsCondition().getPatterns().stream().anyMatch(pattern -> pattern.matches(PathContainer.parsePath(requestUrl)));
 
             // HTTP 메소드 매칭
             boolean methodMatches = mapping.getMethodsCondition().getMethods().contains(RequestMethod.valueOf(httpMethod));
