@@ -18,6 +18,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  mustache:
+    suffix: .html
+    servlet:
+      cache: false
 logging:
   level:
     root: info
@@ -38,5 +42,6 @@ security:
       - "/public/test01"
       - "/users/**"
       - "/api/v1/login"
+      - "login-form"
 jwt:
   secret: Vm4K038c4nspS47dyroqkfwk6balAo4kf9kdba36hT8adfna2fdu032ihawSO05zG

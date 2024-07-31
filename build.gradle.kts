@@ -41,6 +41,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    compileOnly("org.springframework.boot:spring-boot-starter-mustache")
 
     implementation("org.hibernate.orm:hibernate-community-dialects")
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")

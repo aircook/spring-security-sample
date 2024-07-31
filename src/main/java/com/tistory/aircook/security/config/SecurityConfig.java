@@ -106,6 +106,8 @@ public class SecurityConfig {
         // 사용자가 SecurityFilterChain을 정의하면서 기본 보안 구성을 제공하지 않으면 기본 로그인 페이지도 더 이상 제공되지 않습니다.
         //http.formLogin(withDefaults());
         http.formLogin(customizer -> customizer
+                // 로그인페이지 지정, customizing이 필요할때
+                .loginPage("/login-form")
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .loginProcessingUrl("/api/v1/login")
@@ -167,6 +169,7 @@ public class SecurityConfig {
      * 기본로그인페이지에서 사용할 사용자 계정정보를 인메모리에 지정
      * 지정하면 Using generated security password 사라진다.
      * 비밀번호의 {noop} 의미는 암호화 없음
+     *
      * @return
      * @see LoginUserDetailsService
      */
@@ -176,7 +179,6 @@ public class SecurityConfig {
 //        manager.createUser(User.withUsername("user1").password("{noop}1234").roles("user").build());
 //        return manager;
 //    }
-
     @Bean
     public DelegatingSecurityContextRepository delegatingSecurityContextRepository() {
         return new DelegatingSecurityContextRepository(
