@@ -1,6 +1,7 @@
 spring:
   application:
     name: spring-security-sample
+
   datasource:
     url: jdbc:sqlite:mydb.sqlite #mydb.sqlite is the name of the SQLite file. If you don?t have the file (at the project?s root), it will be automatically created.
     username: admin
@@ -22,6 +23,35 @@ spring:
     suffix: .html
     servlet:
       cache: false
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            #${} 는 .env파일에 다음 형태로 정의해야 됨, 중요정보 노출방지용, git ignore 처리
+            #KAKAO_CLIENT_ID=[발급받은 rest api key]
+            #KAKAO_CLIENT_SECRET=[발급받은 secret code]
+            client-id: ${KAKAO_CLIENT_ID} #rest_api 키
+            client-secret: ${KAKAO_CLIENT_SECRET} #secret_code
+            scope:
+              - profile_nickname
+              - profile_image
+              - account_email
+            client-name: kakao-login
+            authorization-grant-type: authorization_code #고정 값
+            redirect-uri: http://localhost:8080/login/oauth2/code/kakao #redirect-uri
+            client-authentication-method: client_secret_post #http method
+            #다음 오류 발생하여 POST -> client_secret_post 수정하여 해결되었는데.. 의미를 아직 모름
+            #This class supports `client_secret_basic`, `client_secret_post`, and `none` by default. Client [kakao] is using [POST] instead.
+            #Please use a supported client authentication method, or use `setRequestEntityConverter` to supply an instance that supports [POST].
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+  config:
+    import: optional:file:env[.properties]
 logging:
   level:
     root: info
@@ -42,6 +72,7 @@ security:
       - "/public/test01"
       - "/users/**"
       - "/api/v1/login"
-      - "login-form"
+      - "/login-form"
+      - "/login/oauth2/code/kakao"
 jwt:
   secret: Vm4K038c4nspS47dyroqkfwk6balAo4kf9kdba36hT8adfna2fdu032ihawSO05zG

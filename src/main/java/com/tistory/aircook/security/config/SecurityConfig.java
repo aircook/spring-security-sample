@@ -53,6 +53,8 @@ public class SecurityConfig {
 
     private final CustomAuthorizationManager customAuthorizationManager;
 
+    private final CustomOAuth2UserService customOAuth2UserService;
+
     //AuthenticationManager Bean 등록, AuthenticationConfiguration Bean은 Spring이 생성함
     //UserDetailsService를 구현하면 다음 메시지가 보인다.
     //Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
@@ -155,12 +157,18 @@ public class SecurityConfig {
 //                        .maximumSessions(1)
 //                        .expiredUrl("/"));
 
-        http.sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
+        http.sessionManagement(sessionManagementCustomizer -> sessionManagementCustomizer.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
 
-        http.securityContext((securityContext) -> {
-            securityContext.securityContextRepository(delegatingSecurityContextRepository());
-            securityContext.requireExplicitSave(true);
+        http.securityContext((securityContextCustomizer) -> {
+            securityContextCustomizer.securityContextRepository(delegatingSecurityContextRepository());
+            securityContextCustomizer.requireExplicitSave(true);
         });
+
+        http.oauth2Login(oauth2LoginCustomizer -> oauth2LoginCustomizer
+                .userInfoEndpoint(userInfoEndpointCustomizer -> userInfoEndpointCustomizer
+                        .userService(customOAuth2UserService))
+                .successHandler(new CustomAuthenticationSuccessHandler()) // CustomAuthenticationFilter에서 사용할려고 만든건데 사용함, JSON데이터 리턴
+        );
 
         return http.build();
     }
