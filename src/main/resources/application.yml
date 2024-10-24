@@ -52,15 +52,6 @@ spring:
             user-name-attribute: id
   config:
     import: optional:file:env[.properties]
-logging:
-  level:
-    root: info
-    org.mybatis: debug
-    org.xerial: debug
-#    com.zaxxer.hikari: debug
-    org.springframework.security: debug
-    com.tistory.aircook.security: debug
-
 
 #security settings ------------------------------------------------------------------------------------
 security:
